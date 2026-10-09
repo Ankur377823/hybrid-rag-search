@@ -176,8 +176,16 @@ export class QueryView {
   _renderAnswerSection(ans) {
     const isIdk = ans.is_idk;
     const formattedText = escapeHtml(ans.text).replace(/\[(\d+)\]/g, (match, num) => {
-      return `<a class="citation-ref-badge" href="#chunk-${num}" title="Jump to audited passage [${num}]">[${num}]</a>`;
+      return `<a class="citation-pill" href="#chunk-${num}" title="View source evidence [${num}]"><span class="pill-hash">#</span>${num}</a>`;
     });
+
+    const compScore = Math.round((ans.composite_confidence || 0) * 100);
+    const citeScore = Math.round((ans.citation_accuracy || 0) * 100);
+    const retScore = Math.round((ans.retrieval_confidence || 0) * 100);
+
+    const compClass = compScore >= 75 ? 'metric-emerald' : compScore >= 50 ? 'metric-blue' : 'metric-amber';
+    const citeClass = citeScore >= 75 ? 'metric-indigo' : citeScore >= 50 ? 'metric-blue' : 'metric-amber';
+    const retClass = retScore >= 75 ? 'metric-cyan' : retScore >= 50 ? 'metric-blue' : 'metric-amber';
 
     return `
       <div class="answer-container">
@@ -204,15 +212,21 @@ export class QueryView {
         <div class="card answer-card">
           <div class="answer-header">
             <div class="answer-badge-group">
-              <span class="badge-primary">Grounded Answer</span>
+              <span class="badge-primary">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  <polyline points="9 12 11 14 15 10"></polyline>
+                </svg>
+                Grounded Answer
+              </span>
               <span class="badge-neutral">${escapeHtml(ans.model || 'gpt-4o')}</span>
             </div>
-            <button id="copyAnswerBtn" class="btn btn-secondary btn-xs">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <button id="copyAnswerBtn" class="btn btn-secondary btn-xs btn-copy-action">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>
-              Copy
+              <span>Copy</span>
             </button>
           </div>
 
@@ -222,33 +236,41 @@ export class QueryView {
 
           <!-- Quality Metrics Grid -->
           <div class="answer-metrics-bar">
-            <div class="metric-gauge-cell">
-              <div class="metric-gauge-label">Composite Confidence</div>
-              <div class="metric-gauge-value">${(ans.composite_confidence * 100).toFixed(0)}%</div>
+            <div class="metric-gauge-cell ${compClass}">
+              <div class="metric-gauge-top">
+                <span class="metric-gauge-label">Composite Confidence</span>
+                <span class="metric-gauge-value">${compScore}%</span>
+              </div>
               <div class="metric-gauge-bar">
-                <div class="metric-gauge-fill" style="width: ${ans.composite_confidence * 100}%;"></div>
+                <div class="metric-gauge-fill" style="width: ${compScore}%;"></div>
               </div>
             </div>
 
-            <div class="metric-gauge-cell">
-              <div class="metric-gauge-label">Citation Accuracy</div>
-              <div class="metric-gauge-value">${(ans.citation_accuracy * 100).toFixed(0)}%</div>
+            <div class="metric-gauge-cell ${citeClass}">
+              <div class="metric-gauge-top">
+                <span class="metric-gauge-label">Citation Accuracy</span>
+                <span class="metric-gauge-value">${citeScore}%</span>
+              </div>
               <div class="metric-gauge-bar">
-                <div class="metric-gauge-fill" style="width: ${ans.citation_accuracy * 100}%;"></div>
+                <div class="metric-gauge-fill" style="width: ${citeScore}%;"></div>
               </div>
             </div>
 
-            <div class="metric-gauge-cell">
-              <div class="metric-gauge-label">Retrieval Score</div>
-              <div class="metric-gauge-value">${(ans.retrieval_confidence * 100).toFixed(0)}%</div>
+            <div class="metric-gauge-cell ${retClass}">
+              <div class="metric-gauge-top">
+                <span class="metric-gauge-label">Retrieval Score</span>
+                <span class="metric-gauge-value">${retScore}%</span>
+              </div>
               <div class="metric-gauge-bar">
-                <div class="metric-gauge-fill" style="width: ${ans.retrieval_confidence * 100}%;"></div>
+                <div class="metric-gauge-fill" style="width: ${retScore}%;"></div>
               </div>
             </div>
 
-            <div class="metric-gauge-cell">
-              <div class="metric-gauge-label">Pipeline Latency</div>
-              <div class="metric-gauge-value">${ans.latency_ms} ms</div>
+            <div class="metric-gauge-cell metric-latency">
+              <div class="metric-gauge-top">
+                <span class="metric-gauge-label">Pipeline Latency</span>
+                <span class="metric-gauge-value">${ans.latency_ms} ms</span>
+              </div>
               <div class="metric-gauge-sub">Round-trip time</div>
             </div>
           </div>
@@ -298,6 +320,9 @@ export class QueryView {
                 .map((h, i) => {
                   const num = i + 1;
                   const chunk = h.chunk || {};
+                  const scorePct = Math.round((h.score || 0) * 100);
+                  const badgeClass = scorePct >= 70 ? 'match-high' : scorePct >= 30 ? 'match-mid' : 'match-context';
+                  const badgeText = scorePct > 0 ? `Match: <strong>${scorePct}%</strong>` : `Context Passage`;
                   return `
                 <div class="chunk-item chunk-expanded" id="chunk-${num}">
                   <div class="chunk-header" onclick="this.parentElement.classList.toggle('chunk-expanded')">
@@ -306,7 +331,7 @@ export class QueryView {
                       <span class="chunk-source-label">${escapeHtml(chunk.title || chunk.source || `Passage ${num}`)}</span>
                     </div>
                     <div class="chunk-scores-group">
-                      <span class="score-badge">Match: <strong>${Math.round((h.score || 0) * 100)}%</strong></span>
+                      <span class="score-badge ${badgeClass}">${badgeText}</span>
                       <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="6 9 12 15 18 9"></polyline>
                       </svg>
@@ -420,55 +445,66 @@ export class QueryView {
 function formatReadableContent(rawText) {
   if (!rawText) return '<p class="evidence-paragraph">No content recorded.</p>';
 
-  // Clean dingbats, book symbols, corrupted font glyphs, and PUA characters
+  // Clean dingbats, corrupted font glyphs, and PUA characters
   let clean = rawText
-    // Replace 🕮 (book/bullet symbol in pdf fonts like Wingdings)
     .replace(/[\u{1F56E}\u{1F56F}\u{1F4D6}\u{1F56D}]/gu, '\n• ')
-    // Replace 뚱 (broken font mapping bullet)
     .replace(/[\uB6B1]+/g, '\n• ')
-    // Replace Private Use Area symbols often used as bullets in PDFs
     .replace(/[\uE000-\uF8FF]/g, '\n• ')
-    // Replace odd diamond/square bullets
     .replace(/[▪■●○◆◇►▶]/g, '\n• ')
-    // Ensure newline before numbered items like " 1. ", " 2. ", " Step 1: "
+    // De-hyphenate words broken by line endings (e.g. "transduc-\ntion" -> "transduction")
+    .replace(/(\b[a-zA-Z]+)-\s*\n\s*([a-zA-Z]+\b)/g, '$1$2')
+    // Remove isolated single-line page numbers like "\n2\n" or "\n 7 \n"
+    .replace(/\n\s*\d{1,3}\s*\n/g, '\n\n')
+    // Ensure newline before numbered list items
     .replace(/(\s+)(\d+\.\s+[A-Z])/g, '\n$2')
     .replace(/(\s+)(Step\s+\d+[:—\-])/gi, '\n$2')
     // Remove duplicate bullet markers
     .replace(/(•\s*){2,}/g, '• ')
     // Normalize newlines
-    .replace(/\r\n/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+    .replace(/\r\n/g, '\n');
 
-  // Parse lines into structured paragraphs, subheadings, and bullet lists
-  const rawLines = clean.split('\n').map((l) => l.trim()).filter(Boolean);
+  // Split into paragraphs by blank lines (double newlines)
+  const blocks = clean.split(/\n\s*\n+/).map((b) => b.trim()).filter(Boolean);
   let html = '';
-  let inList = false;
 
-  for (const line of rawLines) {
-    if (line.startsWith('• ') || line.startsWith('- ') || line.startsWith('* ')) {
-      if (!inList) {
-        html += '<ul class="evidence-list">';
-        inList = true;
+  for (const block of blocks) {
+    const lines = block.split('\n').map((l) => l.trim()).filter(Boolean);
+    if (!lines.length) continue;
+
+    const hasBullets = lines.some((l) => l.startsWith('• ') || l.startsWith('- ') || l.startsWith('* '));
+    if (hasBullets) {
+      let inList = false;
+      for (const line of lines) {
+        if (line.startsWith('• ') || line.startsWith('- ') || line.startsWith('* ')) {
+          if (!inList) {
+            html += '<ul class="evidence-list">';
+            inList = true;
+          }
+          const itemText = line.replace(/^[•\-*]\s*/, '');
+          html += `<li class="evidence-list-item">${escapeHtml(itemText)}</li>`;
+        } else {
+          if (inList) {
+            html += '</ul>';
+            inList = false;
+          }
+          if (line.endsWith(':') || /^Step\s+\d+/i.test(line) || /^\d+\.\s+[A-Z]/.test(line)) {
+            html += `<div class="evidence-subheading">${escapeHtml(line)}</div>`;
+          } else {
+            html += `<p class="evidence-paragraph">${escapeHtml(line)}</p>`;
+          }
+        }
       }
-      const itemText = line.replace(/^[•\-*]\s*/, '');
-      html += `<li class="evidence-list-item">${escapeHtml(itemText)}</li>`;
+      if (inList) html += '</ul>';
     } else {
-      if (inList) {
-        html += '</ul>';
-        inList = false;
-      }
-      // Check if it's a sub-heading (short line ending in colon or Step X)
-      if (line.endsWith(':') || /^Step\s+\d+/i.test(line) || /^\d+\.\s+[A-Z]/.test(line)) {
-        html += `<div class="evidence-subheading">${escapeHtml(line)}</div>`;
+      // Header detection: isolated short heading
+      if (lines.length === 1 && (lines[0].endsWith(':') || /^(\d+(\.\d+)*)\s+[A-Z]/.test(lines[0]))) {
+        html += `<div class="evidence-subheading">${escapeHtml(lines[0])}</div>`;
       } else {
-        html += `<p class="evidence-paragraph">${escapeHtml(line)}</p>`;
+        // Continuous prose: join lines with space
+        const prose = lines.join(' ');
+        html += `<p class="evidence-paragraph">${escapeHtml(prose)}</p>`;
       }
     }
-  }
-
-  if (inList) {
-    html += '</ul>';
   }
 
   return html || `<p class="evidence-paragraph">${escapeHtml(rawText)}</p>`;
