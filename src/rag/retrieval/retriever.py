@@ -89,10 +89,23 @@ class HybridRetriever:
 
     @staticmethod
     def aggregate_confidence(hits: list[RankedHit]) -> float:
-        """Mean of post-rerank scores, clamped to [0,1]. Used as retrieval confidence."""
+        """Aggregate post-rerank confidence.
+
+        The confidence that the corpus contains the requested fact is primarily
+        determined by the best-matching passage, reinforced by secondary passages.
+        Using a naive arithmetic mean severely punishes answers where exactly one
+        chunk holds the key fact (e.g. [1.0, 0.0, 0.0, 0.0, 0.0] averages to 0.20,
+        erroneously triggering the low-confidence IDK gate).
+        """
         if not hits:
             return 0.0
-        return max(0.0, min(1.0, sum(h.score for h in hits) / len(hits)))
+        scores = sorted([h.score for h in hits], reverse=True)
+        top = scores[0]
+        if len(scores) == 1:
+            return max(0.0, min(1.0, top))
+        mean_score = sum(scores) / len(scores)
+        blended = 0.7 * top + 0.3 * mean_score
+        return max(0.0, min(1.0, max(top * 0.75, blended)))
 
     @staticmethod
     def chunks(hits: list[RankedHit]) -> list[Chunk]:
