@@ -68,7 +68,7 @@ export class AuthView {
                     type="email"
                     id="terminalEmail"
                     class="field-input-control"
-                    placeholder="admin@hybridrag.io"
+                    placeholder="name@organization.com"
                     required
                     autocomplete="email"
                   >
@@ -88,7 +88,7 @@ export class AuthView {
                     type="password"
                     id="terminalPassword"
                     class="field-input-control"
-                    placeholder="••••••••••••"
+                    placeholder="••••••••"
                     required
                     autocomplete="current-password"
                   >
@@ -99,11 +99,6 @@ export class AuthView {
                     </svg>
                   </button>
                 </div>
-              </div>
-
-              <div class="auth-demo-hint-row">
-                <span class="demo-hint-label">Default Access:</span>
-                <code class="demo-hint-code">admin@hybridrag.io / admin123</code>
               </div>
 
               <div class="auth-submission-row">
