@@ -1427,3 +1427,430 @@ body {
   color: #a1a1aa;
   font-weight: bold;
 }
+
+/* ==========================================================================
+   Enterprise Auth Screen Layout & Components
+   Clean, high-density, professional aesthetic (no emojis)
+   ========================================================================== */
+
+.enterprise-auth-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 15% 20%, #18181b 0%, #09090b 60%);
+  padding: 2.5rem 1.5rem;
+  box-sizing: border-box;
+}
+
+.enterprise-auth-container {
+  width: 100%;
+  max-width: 1140px;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 3.5rem;
+  align-items: center;
+}
+
+@media (max-width: 960px) {
+  .enterprise-auth-container {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    max-width: 520px;
+  }
+}
+
+/* Left: Showcase */
+.auth-showcase {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-logo-symbol {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #18181b;
+  border: 1px solid #3f3f46;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.brand-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #f4f4f5;
+}
+
+.brand-badge {
+  font-size: 0.72rem;
+  font-family: var(--font-mono, monospace);
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.showcase-tag {
+  display: inline-block;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  background: #18181b;
+  border: 1px solid #27272a;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  margin-bottom: 0.75rem;
+}
+
+.showcase-title {
+  font-size: 2.15rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: #f4f4f5;
+  margin-bottom: 0.75rem;
+}
+
+.showcase-description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #a1a1aa;
+  margin-bottom: 1.75rem;
+}
+
+.architecture-specs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.spec-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: rgba(24, 24, 27, 0.65);
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.spec-card:hover {
+  border-color: #3f3f46;
+  background: rgba(24, 24, 27, 0.95);
+}
+
+.spec-icon {
+  margin-top: 0.15rem;
+  color: #d4d4d8;
+  flex-shrink: 0;
+}
+
+.spec-heading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f4f4f5;
+  margin-bottom: 0.2rem;
+}
+
+.spec-detail {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #71717a;
+}
+
+.showcase-footer {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #1f1f23;
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #71717a;
+  font-family: var(--font-mono, monospace);
+}
+
+.status-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
+}
+
+.status-label {
+  color: #e4e4e7;
+  font-weight: 500;
+}
+
+.status-divider {
+  color: #3f3f46;
+}
+
+/* Right: Auth Box Panel */
+.auth-panel {
+  display: flex;
+  justify-content: center;
+}
+
+.auth-box {
+  width: 100%;
+  max-width: 440px;
+  background: #121215;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  padding: 2.25rem 2rem;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  position: relative;
+}
+
+.auth-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+}
+
+.auth-box-header {
+  margin-bottom: 1.75rem;
+}
+
+.auth-box-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #f4f4f5;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.35rem;
+}
+
+.auth-box-subtitle {
+  font-size: 0.825rem;
+  color: #a1a1aa;
+  line-height: 1.5;
+}
+
+.auth-panel-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.auth-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-label {
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: #d4d4d8;
+}
+
+.field-constraint-tag {
+  font-size: 0.68rem;
+  font-family: var(--font-mono, monospace);
+  color: #71717a;
+  text-transform: uppercase;
+}
+
+.field-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-adornment-icon {
+  position: absolute;
+  left: 0.85rem;
+  color: #71717a;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.field-input-control {
+  width: 100%;
+  background: #09090b;
+  border: 1px solid #27272a;
+  color: #f4f4f5;
+  font-family: var(--font-sans, sans-serif);
+  font-size: 0.875rem;
+  padding: 0.65rem 0.85rem 0.65rem 2.45rem;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field-input-control:focus {
+  border-color: #71717a;
+  box-shadow: 0 0 0 2px rgba(113, 113, 122, 0.2);
+}
+
+.field-input-control::placeholder {
+  color: #52525b;
+}
+
+.password-field-wrap .field-input-control {
+  padding-right: 2.45rem;
+}
+
+.visibility-toggle-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  color: #71717a;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+
+.visibility-toggle-btn:hover, .visibility-toggle-btn.active {
+  color: #f4f4f5;
+}
+
+.auth-submit-btn {
+  width: 100%;
+  background: #ffffff;
+  color: #09090b;
+  border: 1px solid #ffffff;
+  font-family: var(--font-sans, sans-serif);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.7rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+  background: #e4e4e7;
+}
+
+.auth-submit-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loading-spinner-ring {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  border-top-color: #000000;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.auth-alert-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  margin-bottom: 0.5rem;
+}
+
+.alert-icon-wrap {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.auth-deployment-hint {
+  margin-top: 1.5rem;
+  padding: 0.85rem;
+  background: #0d0d10;
+  border: 1px solid #1f1f23;
+  border-radius: 6px;
+}
+
+.hint-header {
+  margin-bottom: 0.35rem;
+}
+
+.hint-badge {
+  font-size: 0.68rem;
+  font-family: var(--font-mono, monospace);
+  color: #a1a1aa;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hint-text {
+  font-size: 0.775rem;
+  line-height: 1.5;
+  color: #71717a;
+}
+
+.hint-text code {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.725rem;
+  background: #18181b;
+  color: #e4e4e7;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+}
+
+.auth-security-footer {
+  margin-top: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  color: #52525b;
+}
+
+.security-sep {
+  color: #3f3f46;
+}
