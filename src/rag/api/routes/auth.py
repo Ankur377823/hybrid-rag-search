@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from ...auth.dependencies import get_current_user
-from ...auth.security import create_access_token, hash_password, verify_password
+from ...auth.security import create_access_token, verify_password
 from ...middleware.rate_limit import rate_limit_dependency
 
 router = APIRouter(prefix="/v1/auth", tags=["auth"], dependencies=[Depends(rate_limit_dependency)])

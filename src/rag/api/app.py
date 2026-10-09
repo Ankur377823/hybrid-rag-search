@@ -27,7 +27,7 @@ from ..ingestion.document_manager import DocumentManager
 from ..ingestion.loaders import load_path
 from ..ingestion.pipeline import IngestionPipeline
 from ..llm_client import LLMClient
-from ..models import Answer, IngestionReport
+from ..models import IngestionReport
 from ..storage import FileStorage
 from ..store.dense import DenseVectorStore
 from ..store.sparse import BM25Store

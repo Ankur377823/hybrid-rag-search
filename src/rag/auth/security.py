@@ -8,7 +8,7 @@ import hmac
 import json
 import secrets
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 from typing import Any
 
 
@@ -74,7 +74,7 @@ def create_access_token(
 
     segment1 = _b64encode_url(h_bytes)
     segment2 = _b64encode_url(p_bytes)
-    signing_input = f"{segment1}.{segment2}".encode("utf-8")
+    signing_input = f"{segment1}.{segment2}".encode()
 
     signature = hmac.new(secret_key.encode("utf-8"), signing_input, hashlib.sha256).digest()
     segment3 = _b64encode_url(signature)
@@ -93,7 +93,7 @@ def decode_access_token(
         if len(parts) != 3:
             return None
         segment1, segment2, segment3 = parts
-        signing_input = f"{segment1}.{segment2}".encode("utf-8")
+        signing_input = f"{segment1}.{segment2}".encode()
 
         expected_sig = hmac.new(secret_key.encode("utf-8"), signing_input, hashlib.sha256).digest()
         actual_sig = _b64decode_url(segment3)

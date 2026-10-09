@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 from pathlib import Path
 from typing import Any
@@ -31,10 +32,8 @@ class Settings(BaseSettings):
                 if env_candidate:
                     data["environment"] = env_candidate
             if not data.get("api_port") and "PORT" in os.environ:
-                try:
+                with contextlib.suppress(ValueError):
                     data["api_port"] = int(os.environ["PORT"])
-                except ValueError:
-                    pass
         return data
 
     openai_api_key: str = ""

@@ -12,7 +12,6 @@ Handles:
 from __future__ import annotations
 
 import hashlib
-import io
 import uuid
 from pathlib import Path
 from typing import Any
@@ -21,7 +20,7 @@ from ..db.repository import DocumentRepository, VersionRepository
 from ..ingestion.chunkers import chunker_for
 from ..llm_client import LLMClient
 from ..logging import get_logger
-from ..models import Chunk, ChunkingStrategy, Document, DocumentFormat
+from ..models import ChunkingStrategy, Document, DocumentFormat
 from ..storage import FileStorage
 from ..store.dense import DenseVectorStore
 from ..store.sparse import BM25Store
@@ -34,6 +33,7 @@ def _extract_text(filename: str, content: bytes) -> tuple[str, DocumentFormat]:
     if suffix.endswith(".pdf"):
         import io
         import re
+
         import pypdf
 
         reader = pypdf.PdfReader(io.BytesIO(content))

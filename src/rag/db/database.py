@@ -7,8 +7,6 @@ and falls back to SQLite for local development and CI testing.
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -30,11 +28,9 @@ class Database:
         self.raw_url = url.strip()
         self.environment = environment.lower().strip()
         self.default_sqlite_path = default_sqlite_path
-        
+
         # Check whether PostgreSQL is configured or requested
-        if self.raw_url.startswith(("postgresql://", "postgres://")):
-            self.is_postgres = True
-        elif self.environment in ("production", "deployment", "prod"):
+        if self.raw_url.startswith(("postgresql://", "postgres://")) or self.environment in ("production", "deployment", "prod"):
             self.is_postgres = True
         else:
             self.is_postgres = False
@@ -49,6 +45,7 @@ class Database:
             try:
                 import ssl
                 from urllib.parse import urlparse, urlunparse
+
                 import asyncpg  # type: ignore
 
                 parsed = urlparse(self.raw_url)
@@ -62,7 +59,7 @@ class Database:
                     or "sslmode=no-verify" in self.raw_url
                     or "neon.tech" in hostname
                     or "render.com" in hostname
-                    or not (hostname in ("localhost", "127.0.0.1", "postgres", "db"))
+                    or hostname not in ("localhost", "127.0.0.1", "postgres", "db")
                 )
 
                 if requires_ssl:
