@@ -106,10 +106,8 @@ export class AuthView {
           <section class="auth-panel">
             <div class="auth-box">
               <div class="auth-box-header">
-                <h2 class="auth-box-title">Sign In to Console</h2>
-                <p class="auth-box-subtitle">
-                  Authenticate with administrator credentials to manage documents and run grounded retrieval queries.
-                </p>
+                <h2 class="auth-box-title">Sign In</h2>
+                <p class="auth-box-subtitle">Enter your credentials to continue.</p>
               </div>
 
               <form id="authForm" class="auth-panel-form" novalidate>
@@ -131,10 +129,7 @@ export class AuthView {
                 }
 
                 <div class="auth-field-group">
-                  <div class="field-label-row">
-                    <label for="terminalEmail" class="field-label">Email Address</label>
-                    <span class="field-constraint-tag">Required</span>
-                  </div>
+                  <label for="terminalEmail" class="field-label">Email</label>
                   <div class="field-input-wrapper">
                     <span class="input-adornment-icon" aria-hidden="true">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -154,10 +149,7 @@ export class AuthView {
                 </div>
 
                 <div class="auth-field-group">
-                  <div class="field-label-row">
-                    <label for="terminalPassword" class="field-label">Password</label>
-                    <span class="field-constraint-tag">Required</span>
-                  </div>
+                  <label for="terminalPassword" class="field-label">Password</label>
                   <div class="field-input-wrapper password-field-wrap">
                     <span class="input-adornment-icon" aria-hidden="true">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -186,29 +178,12 @@ export class AuthView {
                   <button type="submit" id="submitAuthBtn" class="auth-submit-btn" ${this.loading ? 'disabled' : ''}>
                     ${
                       this.loading
-                        ? '<span class="loading-spinner-ring" aria-hidden="true"></span> Authenticating...'
-                        : 'Sign In to Console'
+                        ? '<span class="loading-spinner-ring" aria-hidden="true"></span> Signing in...'
+                        : 'Sign In'
                     }
                   </button>
                 </div>
               </form>
-
-              <div class="auth-deployment-hint">
-                <div class="hint-header">
-                  <span class="hint-badge">Access Configuration</span>
-                </div>
-                <p class="hint-text">
-                  Sign in using credentials configured via <code>RAG_ADMIN_EMAIL</code> and <code>RAG_ADMIN_PASSWORD</code> in your deployment environment variables.
-                </p>
-              </div>
-
-              <div class="auth-security-footer">
-                <span>Encrypted Sessions</span>
-                <span class="security-sep">•</span>
-                <span>Audit Logged</span>
-                <span class="security-sep">•</span>
-                <span>Private Cloud</span>
-              </div>
             </div>
           </section>
 
