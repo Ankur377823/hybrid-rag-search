@@ -26,6 +26,10 @@ class Settings(BaseSettings):
         if isinstance(data, dict):
             if not data.get("database_url"):
                 data["database_url"] = os.environ.get("RAG_DATABASE_URL") or os.environ.get("DATABASE_URL") or ""
+            if not data.get("environment"):
+                env_candidate = os.environ.get("RAG_ENVIRONMENT") or os.environ.get("RAG_ENV")
+                if env_candidate:
+                    data["environment"] = env_candidate
             if not data.get("api_port") and "PORT" in os.environ:
                 try:
                     data["api_port"] = int(os.environ["PORT"])

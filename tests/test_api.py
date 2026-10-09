@@ -93,3 +93,14 @@ def test_ingest_then_ask(api_client: TestClient, tmp_path: Path) -> None:
 def test_ask_rejects_empty_question(api_client: TestClient) -> None:
     r = api_client.post("/v1/ask", json={"question": ""})
     assert r.status_code == 422  # Pydantic min_length validation
+
+
+def test_root_redirect_and_frontend(api_client: TestClient) -> None:
+    r = api_client.get("/", follow_redirects=False)
+    assert r.status_code in (302, 307)
+    assert r.headers["location"] in ("/app/", "/docs")
+
+    r_app = api_client.get("/app/")
+    assert r_app.status_code == 200
+    assert "HybridRAG" in r_app.text
+

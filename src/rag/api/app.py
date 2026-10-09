@@ -122,11 +122,16 @@ def create_app(state: AppState) -> FastAPI:
     app.include_router(query_router)
     app.include_router(usage_router)
 
-    frontend_dir = Path(__file__).resolve().parent.parent.parent.parent / "frontend"
+    frontend_candidates = [
+        Path.cwd() / "frontend",
+        Path("/app/frontend"),
+        Path(__file__).resolve().parent.parent.parent.parent / "frontend",
+    ]
+    frontend_dir = next((p for p in frontend_candidates if p.exists() and p.is_dir()), None)
 
     @app.get("/", include_in_schema=False)
     async def root() -> RedirectResponse:
-        return RedirectResponse(url="/app" if frontend_dir.exists() else "/docs")
+        return RedirectResponse(url="/app/" if frontend_dir else "/docs")
 
     @app.get("/health", tags=["meta"])
     async def health() -> dict[str, object]:
@@ -144,7 +149,11 @@ def create_app(state: AppState) -> FastAPI:
         docs = list(load_path(Path(req.path)))
         return await s.ingestion.ingest(docs)
 
-    if frontend_dir.exists():
+    if frontend_dir is not None:
+        @app.get("/app", include_in_schema=False)
+        async def app_redirect() -> RedirectResponse:
+            return RedirectResponse(url="/app/")
+
         app.mount("/app", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
 
     return app
