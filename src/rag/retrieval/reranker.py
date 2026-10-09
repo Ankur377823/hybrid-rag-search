@@ -94,7 +94,7 @@ class LLMReranker(Reranker):
                         role="user",
                         content=(
                             f"QUERY:\n{query}\n\n"
-                            f"PASSAGE:\n{chunk.text[:1500]}\n\n"
+                            f"PASSAGE:\n{chunk.text[:4000]}\n\n"
                             f"Return JSON now."
                         ),
                     ),
