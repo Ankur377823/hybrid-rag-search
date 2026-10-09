@@ -285,7 +285,7 @@ All settings can be configured via environment variables prefixed with `RAG_`:
 
 ## Testing & Quality Assurance
 
-Run the comprehensive test suite with coverage:
+Run the comprehensive 69-test test suite with coverage:
 
 ```bash
 pytest -v
