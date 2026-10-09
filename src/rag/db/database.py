@@ -106,8 +106,13 @@ class Database:
 
     async def execute(self, query: str, *args: Any) -> Any:
         if self.is_postgres and self._pool is not None:
+            from datetime import datetime as dt_cls
+            clean_args = [
+                dt_cls.fromisoformat(a) if (isinstance(a, str) and "T" in a and len(a) >= 19 and a[0:4].isdigit()) else a
+                for a in args
+            ]
             async with self._pool.acquire() as conn:
-                return await conn.execute(query, *args)
+                return await conn.execute(query, *clean_args)
         else:
             # SQLite uses ? instead of $1, $2
             converted_query = self._to_sqlite_placeholders(query)

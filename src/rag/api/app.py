@@ -87,8 +87,9 @@ def create_app(state: AppState) -> FastAPI:
                         await state.user_repo.create(admin_email, hash_password(state.settings.admin_password))
                     elif not verify_password(state.settings.admin_password, admin_user.get("password_hash", "")):
                         await state.user_repo.update_password(admin_user["id"], hash_password(state.settings.admin_password))
-                except Exception:
-                    pass
+                except Exception as exc:
+                    from ..logging import get_logger
+                    get_logger(__name__).error("admin_user_seed_failed", error=str(exc))
         try:
             yield
         finally:
