@@ -53,11 +53,13 @@ class HybridRetriever:
 
         # Resolve fused chunk_ids → Chunk objects, applying user_id / document_id isolation filters
         candidates: list[RankedHit] = []
-        for hit in fused[: max(self._final_top_k * 4, self._dense_top_k)]:
+        target_count = max(self._final_top_k * 4, self._dense_top_k)
+        for hit in fused:
             chunk = self._dense.get(hit.chunk_id) or self._sparse.get(hit.chunk_id)
             if chunk is None:
                 continue
-            if user_id and chunk.metadata.get("user_id") != user_id:
+            chunk_user = chunk.metadata.get("user_id")
+            if user_id and chunk_user and chunk_user != user_id:
                 continue
             if document_id and chunk.metadata.get("document_id") != document_id:
                 continue
@@ -70,6 +72,8 @@ class HybridRetriever:
                     rrf_score=hit.rrf_score,
                 )
             )
+            if len(candidates) >= target_count:
+                break
 
         ranked = await self._reranker.rerank(
             query=query, candidates=candidates, top_k=self._final_top_k

@@ -1,7 +1,7 @@
 /**
  * AuthView Component
- * High-performance, enterprise-grade sign-in console.
- * Strictly professional typography and iconography (no emojis).
+ * High-performance, minimalist enterprise sign-in console.
+ * Clean, professional presentation without emojis or model names.
  */
 
 import { login } from '../api.js';
@@ -38,11 +38,9 @@ export class AuthView {
             </header>
 
             <div class="showcase-body">
-              <div class="showcase-tag">Version 0.2.0 • Production Ready</div>
-              <h1 class="showcase-title">Production-Grade Hybrid Search &amp; Grounded Retrieval</h1>
+              <h1 class="showcase-title">Enterprise Document Search &amp; Verification</h1>
               <p class="showcase-description">
-                High-throughput enterprise retrieval infrastructure integrating dense neural vectors, 
-                lexical BM25 ranking, and real-time LLM-as-judge citation verification.
+                A unified knowledge platform combining semantic understanding and exact keyword precision for dependable, factual answers.
               </p>
 
               <div class="architecture-specs-list">
@@ -54,9 +52,9 @@ export class AuthView {
                     </svg>
                   </div>
                   <div class="spec-content">
-                    <h2 class="spec-heading">Dual-Index Fusion Engine</h2>
+                    <h2 class="spec-heading">Hybrid Search Engine</h2>
                     <p class="spec-detail">
-                      Reciprocal Rank Fusion (RRF, k=60) merges cosine semantic embeddings and BM25Okapi matches without requiring score calibration.
+                      Seamlessly blends contextual semantic search with exact keyword matching to surface relevant source passages.
                     </p>
                   </div>
                 </article>
@@ -69,9 +67,9 @@ export class AuthView {
                     </svg>
                   </div>
                   <div class="spec-content">
-                    <h2 class="spec-heading">Automated Citation Verification</h2>
+                    <h2 class="spec-heading">Verified Grounding</h2>
                     <p class="spec-detail">
-                      Every claim is audited against retrieved chunks via an asynchronous LLM-as-judge. Queries below confidence threshold trigger a calibrated refusal.
+                      Validates every factual statement directly against your uploaded source documents to prevent inaccurate responses.
                     </p>
                   </div>
                 </article>
@@ -86,9 +84,9 @@ export class AuthView {
                     </svg>
                   </div>
                   <div class="spec-content">
-                    <h2 class="spec-heading">Multi-Tenant PostgreSQL Isolation</h2>
+                    <h2 class="spec-heading">Secure Data Isolation</h2>
                     <p class="spec-detail">
-                      Row-level tenant security, SHA-256 deduplication for zero-cost skips, and atomic vector store swaps for zero-downtime document updates.
+                      Protects your data with strict tenant isolation, document version tracking, and encrypted storage.
                     </p>
                   </div>
                 </article>
@@ -97,12 +95,9 @@ export class AuthView {
 
             <footer class="showcase-footer">
               <div class="status-indicator">
-                <span class="status-pulse-dot" aria-hidden="true"></span>
-                <span class="status-label">System Operational</span>
+                <span class="status-label">Enterprise Knowledge Console</span>
                 <span class="status-divider">•</span>
-                <span class="status-detail">PostgreSQL Active</span>
-                <span class="status-divider">•</span>
-                <span class="status-detail">Rate-Limiting Enforced</span>
+                <span class="status-detail">Secure Session</span>
               </div>
             </footer>
           </section>
@@ -208,11 +203,11 @@ export class AuthView {
               </div>
 
               <div class="auth-security-footer">
-                <span>Encrypted JWT Sessions</span>
+                <span>Encrypted Sessions</span>
                 <span class="security-sep">•</span>
                 <span>Audit Logged</span>
                 <span class="security-sep">•</span>
-                <span>SHA-256 Storage</span>
+                <span>Private Cloud</span>
               </div>
             </div>
           </section>
