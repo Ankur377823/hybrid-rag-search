@@ -1,8 +1,8 @@
-# rag-hybrid-search
+# hybrid-rag-search
 
 > **Production-grade RAG platform** featuring multi-format document ingestion, three swappable chunking strategies, hybrid retrieval (Dense + BM25) via Reciprocal Rank Fusion (RRF), cross-encoder reranking, bracketed citation verification (LLM-as-judge), multi-tenant PostgreSQL database isolation, and one-click cloud deployment via Render.
 
-[![Tests](https://github.com/Ankur377823/rag-hybrid-search/actions/workflows/test.yml/badge.svg)](https://github.com/Ankur377823/rag-hybrid-search/actions/workflows/test.yml)
+[![Tests](https://github.com/Ankur377823/hybrid-rag-search/actions/workflows/test.yml/badge.svg)](https://github.com/Ankur377823/hybrid-rag-search/actions/workflows/test.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688.svg)](https://fastapi.tiangolo.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791.svg)](https://www.postgresql.org/)
@@ -87,7 +87,7 @@ This repository includes a [`render.yaml`](render.yaml) Blueprint that provision
 
 1. **Push this repository to your GitHub account**:
    ```bash
-   git remote add origin https://github.com/Ankur377823/rag-hybrid-search.git
+   git remote add origin https://github.com/Ankur377823/hybrid-rag-search.git
    git branch -M main
    git push -u origin main
    ```
@@ -95,7 +95,7 @@ This repository includes a [`render.yaml`](render.yaml) Blueprint that provision
 2. **Create Blueprint on Render**:
    - Log into [Render Dashboard](https://dashboard.render.com/).
    - Click **New +** → **Blueprint**.
-   - Connect your `rag-hybrid-search` repository.
+   - Connect your `hybrid-rag-search` repository.
    - Render will parse `render.yaml` and prompt you for the required secret:
      - `RAG_OPENAI_API_KEY`: Your OpenAI API Key (`sk-...`).
      - `RAG_ADMIN_PASSWORD`: A secure admin password for initial login.
@@ -125,8 +125,8 @@ This repository includes a [`render.yaml`](render.yaml) Blueprint that provision
 
 ### 2. Setup Virtual Environment
 ```bash
-git clone https://github.com/Ankur377823/rag-hybrid-search.git
-cd rag-hybrid-search
+git clone https://github.com/Ankur377823/hybrid-rag-search.git
+cd hybrid-rag-search
 
 python -m venv .venv
 # Linux / macOS:

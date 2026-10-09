@@ -16,8 +16,8 @@ Thank you for contributing to `rag-hybrid-search`! This document provides instru
 #### Linux / macOS
 ```bash
 # Clone the repository
-git clone https://github.com/Ankur377823/Rag-hybrid-search.git
-cd Rag-hybrid-search
+git clone https://github.com/Ankur377823/hybrid-rag-search.git
+cd hybrid-rag-search
 
 # Create and activate virtual environment
 python3 -m venv .venv
@@ -31,8 +31,8 @@ pip install -e ".[dev]"
 #### Windows (PowerShell)
 ```powershell
 # Clone the repository
-git clone https://github.com/Ankur377823/Rag-hybrid-search.git
-cd Rag-hybrid-search
+git clone https://github.com/Ankur377823/hybrid-rag-search.git
+cd hybrid-rag-search
 
 # Create and activate virtual environment
 python -m venv .venv

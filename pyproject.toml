@@ -56,8 +56,8 @@ dev = [
 rag = "rag.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/Ankur377823/rag-hybrid-search"
-Issues = "https://github.com/Ankur377823/rag-hybrid-search/issues"
+Homepage = "https://github.com/Ankur377823/hybrid-rag-search"
+Issues = "https://github.com/Ankur377823/hybrid-rag-search/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/rag"]
