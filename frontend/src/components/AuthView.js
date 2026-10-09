@@ -6,6 +6,7 @@
 
 import { login } from '../api.js';
 import { store } from '../state.js';
+import { escapeHtml } from '../utils.js';
 
 export class AuthView {
   constructor(container) {
@@ -186,11 +187,4 @@ export class AuthView {
       });
     }
   }
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>'"]/g, 
-    (t) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t)
-  );
 }

@@ -5,6 +5,7 @@
 
 import { deleteDocument, listDocuments } from '../api.js';
 import { store } from '../state.js';
+import { DocumentCard } from './DocumentCard.js';
 
 export class DocumentsView {
   constructor(container, onOpenUpdateModal) {
@@ -52,7 +53,7 @@ export class DocumentsView {
     } else {
       contentHtml = `
         <div class="document-cards-grid">
-          ${docs.map((doc) => this._renderDocCard(doc)).join('')}
+          ${docs.map((doc) => new DocumentCard(doc).render()).join('')}
         </div>
       `;
     }
@@ -75,48 +76,6 @@ export class DocumentsView {
     `;
 
     this.attachEvents();
-  }
-
-  _renderDocCard(doc) {
-    const sizeStr = formatBytes(doc.size_bytes);
-    const updatedDate = new Date(doc.updated_at || doc.created_at).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-
-    return `
-      <div class="doc-card" data-id="${doc.id}">
-        <div class="doc-card-main">
-          <div class="doc-header-row">
-            <div class="doc-title-box">
-              <div class="doc-name" title="${escapeHtml(doc.filename)}">${escapeHtml(doc.filename)}</div>
-              <div class="doc-meta-line">
-                <span>Version ${doc.version}</span>
-                <span class="meta-sep">&middot;</span>
-                <span>${doc.chunk_count} chunks</span>
-                <span class="meta-sep">&middot;</span>
-                <span>${sizeStr}</span>
-                <span class="meta-sep">&middot;</span>
-                <span>${updatedDate}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="doc-actions-row">
-          <button class="btn btn-secondary btn-sm ask-btn" data-id="${doc.id}">
-            Ask Questions
-          </button>
-          <button class="btn btn-secondary btn-sm update-btn" data-id="${doc.id}">
-            Update
-          </button>
-          <button class="btn btn-secondary btn-sm delete-btn" data-id="${doc.id}">
-            Delete
-          </button>
-        </div>
-      </div>
-    `;
   }
 
   attachEvents() {
@@ -176,19 +135,4 @@ export class DocumentsView {
       });
     });
   }
-}
-
-function formatBytes(bytes) {
-  if (!bytes || bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>'"]/g, 
-    (t) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t)
-  );
 }

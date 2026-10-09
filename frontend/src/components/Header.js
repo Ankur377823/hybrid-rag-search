@@ -4,6 +4,7 @@
  */
 
 import { store } from '../state.js';
+import { escapeHtml } from '../utils.js';
 
 export class Header {
   constructor(container) {
@@ -82,11 +83,4 @@ export class Header {
       });
     }
   }
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>'"]/g, 
-    (t) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t)
-  );
 }
