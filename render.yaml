@@ -1,0 +1,42 @@
+services:
+  # Web service: Hybrid RAG API + Bundled Modern UI
+  - type: web
+    name: rag-hybrid-search
+    runtime: docker
+    plan: starter
+    region: oregon
+    branch: main
+    dockerfilePath: Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: RAG_ENV
+        value: production
+      - key: RAG_DATABASE_URL
+        fromDatabase:
+          name: rag-postgres
+          property: connectionString
+      - key: RAG_OPENAI_API_KEY
+        sync: false
+      - key: RAG_JWT_SECRET
+        generateValue: true
+      - key: RAG_ADMIN_EMAIL
+        value: admin@hybridrag.io
+      - key: RAG_ADMIN_PASSWORD
+        sync: false
+      - key: RAG_INDEX_DIR
+        value: /data/.rag-index
+      - key: RAG_UPLOAD_DIR
+        value: /data/uploads
+    disk:
+      name: rag-data
+      mountPath: /data
+      sizeGB: 10
+
+databases:
+  # Managed PostgreSQL with multi-user isolation, schema auto-migration, and secure SSL
+  - name: rag-postgres
+    databaseName: ragdb
+    user: raguser
+    plan: free
+    region: oregon
+    postgresMajorVersion: 16

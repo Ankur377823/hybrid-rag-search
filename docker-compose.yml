@@ -1,0 +1,35 @@
+services:
+  api:
+    build: .
+    image: rag-hybrid-search:dev
+    environment:
+      RAG_OPENAI_API_KEY: ${RAG_OPENAI_API_KEY:?set in .env}
+      RAG_INDEX_DIR: /data/.rag-index
+      RAG_UPLOAD_DIR: /data/uploads
+      RAG_ENV: ${RAG_ENV:-development}
+      RAG_DATABASE_URL: ${RAG_DATABASE_URL:-}
+      RAG_ADMIN_EMAIL: ${RAG_ADMIN_EMAIL:-admin@hybridrag.io}
+      RAG_ADMIN_PASSWORD: ${RAG_ADMIN_PASSWORD:-}
+      RAG_API_PORT: "8100"
+    user: "0:0"
+    ports:
+      - "8100:8100"
+    volumes:
+      - rag-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8100/health').read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  ui:
+    image: nginx:alpine
+    ports:
+      - "8501:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on: [api]
+
+volumes:
+  rag-data:
