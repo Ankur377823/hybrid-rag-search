@@ -1857,32 +1857,3 @@ body {
   padding: 0.15rem 0.35rem;
   border-radius: 4px;
 }
-
-.auth-card-footer {
-  margin-top: 2rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  font-size: 0.72rem;
-  color: #71717a;
-  font-family: var(--font-sans);
-}
-
-.auth-trust-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  color: #71717a;
-  font-size: 0.72rem;
-}
-
-.auth-trust-item svg {
-  color: #52525b;
-}
-
-.footer-dot {
-  color: #3f3f46;
-}

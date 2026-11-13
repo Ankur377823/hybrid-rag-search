@@ -11,11 +11,7 @@ class StateStore {
     this.activeTab = 'documents'; // 'documents' | 'query'
     this.documents = [];
     this.health = { status: 'checking', database: 'detecting...', chunks: 0 };
-    this.telemetryLogs = [
-      { time: this._now(), text: 'INCOMING CLIENT CONNECTION ESTABLISHED ...' },
-      { time: this._now(), text: 'SECURITY GATE INITIALIZED [JWT: RS256/HS256]' },
-      { time: this._now(), text: 'NEON POSTGRESQL DRIVER POOL READY ...' },
-    ];
+    this.telemetryLogs = [];
     this.listeners = [];
   }
 
