@@ -36,7 +36,7 @@ def _is_near_duplicate_of(
     vector = np.asarray(embedding, dtype=np.float64)
     norms = np.linalg.norm(matrix, axis=1) * np.linalg.norm(vector)
     sims = (matrix @ vector) / np.where(norms == 0.0, 1.0, norms)
-    return bool(sims.max() >= threshold)
+    return bool(np.any(sims >= threshold))
 
 
 class IngestionPipeline:
