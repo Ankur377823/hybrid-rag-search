@@ -5,13 +5,11 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
 
 from ..config import Settings
 from ..db.database import Database
@@ -24,10 +22,8 @@ from ..db.repository import (
 )
 from ..engine import RagEngine
 from ..ingestion.document_manager import DocumentManager
-from ..ingestion.loaders import load_path
 from ..ingestion.pipeline import IngestionPipeline
 from ..llm_client import LLMClient
-from ..models import IngestionReport
 from ..storage import FileStorage
 from ..store.dense import DenseVectorStore
 from ..store.sparse import BM25Store
@@ -37,9 +33,6 @@ from .routes import (
     query_router,
     usage_router,
 )
-
-if TYPE_CHECKING:
-    pass
 
 
 @dataclass
@@ -62,15 +55,6 @@ class AppState:
     def __post_init__(self) -> None:
         if self.settings is None:
             self.settings = Settings()
-
-
-class AskRequest(BaseModel):
-    question: str = Field(min_length=1)
-    document_id: str | None = None
-
-
-class IngestRequest(BaseModel):
-    path: str = Field(min_length=1)
 
 
 def create_app(state: AppState) -> FastAPI:
@@ -102,7 +86,7 @@ def create_app(state: AppState) -> FastAPI:
         version="0.2.0",
         description=(
             "Production-grade hybrid-search RAG with multi-user isolation, document "
-            "versioning & atomic re-indexing, JWT authentication, and Neon PostgreSQL support."
+            "versioning & atomic re-indexing, JWT authentication, and PostgreSQL support."
         ),
         lifespan=lifespan,
     )
@@ -143,12 +127,9 @@ def create_app(state: AppState) -> FastAPI:
             "n_chunks_sparse": len(state.sparse),
         }
 
-    # Backward compatibility endpoint for CLI & scripts
-    @app.post("/v1/ingest", response_model=IngestionReport, tags=["ingest"])
-    async def ingest(req: IngestRequest, request: Request) -> IngestionReport:
-        s = cast(AppState, request.app.state.app_state)
-        docs = list(load_path(Path(req.path)))
-        return await s.ingestion.ingest(docs)
+    # Note: there is deliberately no HTTP endpoint for folder ingestion. Reading
+    # a server path chosen by the caller is unsafe; bulk ingestion is done with
+    # the `rag ingest` CLI command, and users upload files via /v1/documents.
 
     if frontend_dir is not None:
         @app.get("/app", include_in_schema=False)

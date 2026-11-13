@@ -13,6 +13,7 @@ from typing import Final
 
 from ..llm_client import ChatMessage, LLMClient
 from ..models import Citation, RankedHit
+from .answerer import is_idk_text
 
 _BRACKET_RE: Final[re.Pattern[str]] = re.compile(r"\[(\d+)\]")
 _JSON_OBJ: Final[re.Pattern[str]] = re.compile(r"\{.*\}", re.DOTALL)
@@ -66,7 +67,7 @@ async def verify_citations_async(
     the fraction supported.
     """
     if not citations:
-        return (1.0 if answer_text.lower().startswith("i don't know") else 0.0, [])
+        return (1.0 if is_idk_text(answer_text) else 0.0, [])
 
     chunk_by_id: dict[str, str] = {h.chunk.chunk_id: h.chunk.text for h in hits}
     import asyncio

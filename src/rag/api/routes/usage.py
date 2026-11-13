@@ -18,7 +18,8 @@ async def get_usage(
     current_user: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, Any]:
     app_state = request.app.state.app_state
-    return await app_state.usage_repo.get_summary(current_user["id"])
+    summary: dict[str, Any] = await app_state.usage_repo.get_summary(current_user["id"])
+    return summary
 
 
 @router.get("/history", response_model=list[dict[str, Any]])
@@ -28,4 +29,7 @@ async def get_history(
     current_user: dict[str, Any] = Depends(get_current_user),
 ) -> list[dict[str, Any]]:
     app_state = request.app.state.app_state
-    return await app_state.history_repo.list_recent(current_user["id"], limit=limit)
+    history: list[dict[str, Any]] = await app_state.history_repo.list_recent(
+        current_user["id"], limit=limit
+    )
+    return history

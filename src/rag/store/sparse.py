@@ -11,7 +11,6 @@ to recover keyword-exact phrases the embedding model glosses over.
 
 from __future__ import annotations
 
-import json
 import re
 from collections.abc import Iterable
 from pathlib import Path
@@ -19,6 +18,7 @@ from pathlib import Path
 from rank_bm25 import BM25Okapi
 
 from ..models import Chunk, SparseHit
+from .files import load_json, save_json
 
 _WORD = re.compile(r"[a-z0-9]+")
 
@@ -39,11 +39,8 @@ class BM25Store:
         self._load()
 
     def _load(self) -> None:
-        if not self._path.exists():
-            return
-        try:
-            data = json.loads(self._path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
+        data = load_json(self._path)
+        if data is None:
             return
         for raw in data.get("chunks", []):
             chunk = Chunk.model_validate(raw)
@@ -51,12 +48,11 @@ class BM25Store:
         self._rebuild_index()
 
     def save(self) -> None:
-        self._path.parent.mkdir(parents=True, exist_ok=True)
         payload = {
             "version": 1,
             "chunks": [c.model_dump() for c in self._chunks.values()],
         }
-        self._path.write_text(json.dumps(payload), encoding="utf-8")
+        save_json(self._path, payload)
 
     def upsert(self, chunks: Iterable[Chunk]) -> None:
         for chunk in chunks:
@@ -86,17 +82,28 @@ class BM25Store:
     def __len__(self) -> int:
         return len(self._chunks)
 
-    def search(self, query: str, *, top_k: int = 20) -> list[SparseHit]:
+    def search(
+        self,
+        query: str,
+        *,
+        top_k: int = 20,
+        allowed_ids: set[str] | None = None,
+    ) -> list[SparseHit]:
+        """Return the `top_k` best keyword matches.
+
+        `allowed_ids` limits the search to those chunks, and is applied BEFORE
+        picking the top K (same rule as the dense store).
+        """
         if self._index is None or not self._ids:
             return []
         toks = _tokenize(query)
         if not toks:
             return []
         scores = self._index.get_scores(toks)
-        # Use list comprehension since scores is small enough.
-        ranked = sorted(
-            range(len(scores)), key=lambda i: float(scores[i]), reverse=True
-        )[:top_k]
+        candidates = [
+            i for i, cid in enumerate(self._ids) if allowed_ids is None or cid in allowed_ids
+        ]
+        ranked = sorted(candidates, key=lambda i: float(scores[i]), reverse=True)[:top_k]
         # BM25Okapi can return zero or negative scores on tiny corpora (the IDF
         # formula reduces to log(1)=0 when N=2 and df=1, for instance). We do
         # NOT filter on score here — the rank order is the signal that matters

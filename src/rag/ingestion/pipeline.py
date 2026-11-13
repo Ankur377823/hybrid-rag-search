@@ -14,6 +14,8 @@ from __future__ import annotations
 from collections.abc import Iterable
 from pathlib import Path
 
+import numpy as np
+
 from ..llm_client import LLMClient
 from ..logging import get_logger
 from ..models import Chunk, ChunkingStrategy, Document, IngestionReport
@@ -22,6 +24,19 @@ from ..store.sparse import BM25Store
 from .chunkers import SemanticChunker, chunker_for
 
 log = get_logger(__name__)
+
+
+def _is_near_duplicate_of(
+    embedding: list[float], others: list[list[float]], threshold: float
+) -> bool:
+    """True when `embedding` has cosine similarity >= threshold with any of `others`."""
+    if not others:
+        return False
+    matrix = np.asarray(others, dtype=np.float64)
+    vector = np.asarray(embedding, dtype=np.float64)
+    norms = np.linalg.norm(matrix, axis=1) * np.linalg.norm(vector)
+    sims = (matrix @ vector) / np.where(norms == 0.0, 1.0, norms)
+    return bool(sims.max() >= threshold)
 
 
 class IngestionPipeline:
@@ -96,7 +111,11 @@ class IngestionPipeline:
             texts = [c.text for c in batch]
             embeds = await self._client.embed_batch(self._embedding_model, texts)
             for chunk, emb in zip(batch, embeds, strict=True):
-                if self._dense.is_near_duplicate(emb, threshold=self._dedup_threshold):
+                # Duplicate of something already indexed, or of a chunk kept
+                # earlier in this same run.
+                if self._dense.is_near_duplicate(
+                    emb, threshold=self._dedup_threshold
+                ) or _is_near_duplicate_of(emb, kept_embeddings, self._dedup_threshold):
                     n_dup += 1
                     continue
                 kept.append(chunk)

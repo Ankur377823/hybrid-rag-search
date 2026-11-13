@@ -15,13 +15,13 @@ Public surface:
 
 from __future__ import annotations
 
-import json
 from collections.abc import Iterable
 from pathlib import Path
 
 import numpy as np
 
 from ..models import Chunk, DenseHit
+from .files import load_json, save_json
 
 
 class DenseVectorStore:
@@ -36,11 +36,8 @@ class DenseVectorStore:
         self._load()
 
     def _load(self) -> None:
-        if not self._path.exists():
-            return
-        try:
-            data = json.loads(self._path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
+        data = load_json(self._path)
+        if data is None:
             return
         for raw in data.get("entries", []):
             chunk = Chunk.model_validate(raw["chunk"])
@@ -49,7 +46,6 @@ class DenseVectorStore:
         self._rebuild_matrix()
 
     def save(self) -> None:
-        self._path.parent.mkdir(parents=True, exist_ok=True)
         payload = {
             "version": 1,
             "entries": [
@@ -57,7 +53,7 @@ class DenseVectorStore:
                 for cid, chunk in self._chunks.items()
             ],
         }
-        self._path.write_text(json.dumps(payload), encoding="utf-8")
+        save_json(self._path, payload)
 
     def known_ids(self) -> set[str]:
         return set(self._chunks)
@@ -110,11 +106,32 @@ class DenseVectorStore:
         self._rebuild_matrix()
         self.save()
 
-    def search(self, query_embedding: list[float], *, top_k: int = 20) -> list[DenseHit]:
+    def search(
+        self,
+        query_embedding: list[float],
+        *,
+        top_k: int = 20,
+        allowed_ids: set[str] | None = None,
+    ) -> list[DenseHit]:
+        """Return the `top_k` most similar chunks.
+
+        `allowed_ids` limits the search to those chunks (used for per-user and
+        per-document search). The filter is applied BEFORE picking the top K,
+        so another user's chunks can never push the caller's chunks out.
+        """
         if self._matrix is None or len(self._ids_in_matrix) == 0:
             return []
+        ids = self._ids_in_matrix
+        matrix = self._matrix
+        if allowed_ids is not None:
+            keep = [i for i, cid in enumerate(ids) if cid in allowed_ids]
+            if not keep:
+                return []
+            ids = [ids[i] for i in keep]
+            matrix = matrix[keep]
+
         q = _normalize(np.asarray(query_embedding, dtype=np.float64))
-        sims = self._matrix @ q
+        sims = matrix @ q
         if top_k >= sims.size:
             order = np.argsort(-sims)
         else:
@@ -124,8 +141,9 @@ class DenseVectorStore:
         for rank, idx in enumerate(order, start=1):
             out.append(
                 DenseHit(
-                    chunk_id=self._ids_in_matrix[int(idx)],
-                    score=float(sims[idx]),
+                    chunk_id=ids[int(idx)],
+                    # Clip: float rounding can give 1.0000000002, which the model rejects.
+                    score=float(np.clip(sims[idx], -1.0, 1.0)),
                     rank=rank,
                 )
             )

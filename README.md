@@ -195,7 +195,7 @@ docker compose up --build
 ### Query & Grounded Generation
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/v1/ask` | Ask grounded question with citations and LLM-as-judge verification |
+| `POST` | `/v1/ask` | Ask grounded question with citations and LLM-as-judge verification (login required) |
 | `GET` | `/v1/history` | List user query audit history with confidence and latency |
 | `GET` | `/v1/usage` | Inspect daily token and query usage metrics |
 | `GET` | `/health` | System health check reporting database and vector store sizes |
@@ -285,7 +285,7 @@ All settings can be configured via environment variables prefixed with `RAG_`:
 
 ## Testing & Quality Assurance
 
-Run the comprehensive 69-test test suite with coverage:
+Run the 84-test suite with coverage (currently 84%):
 
 ```bash
 pytest -v

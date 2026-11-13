@@ -101,7 +101,7 @@ def decode_access_token(
             return None
 
         payload_bytes = _b64decode_url(segment2)
-        payload = json.loads(payload_bytes.decode("utf-8"))
+        payload: dict[str, Any] = json.loads(payload_bytes.decode("utf-8"))
 
         # Verify expiration
         exp = payload.get("exp")

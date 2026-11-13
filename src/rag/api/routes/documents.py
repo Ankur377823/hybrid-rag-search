@@ -38,6 +38,9 @@ async def upload_document(
             content=content,
         )
         return IngestDocumentResponse(document=doc, reindexed=reindexed, message=msg)
+    except ValueError as exc:
+        # The file itself is the problem (empty, or no readable text) -> 400.
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to process document: {exc}") from exc
 
@@ -48,7 +51,8 @@ async def list_documents(
     current_user: dict[str, Any] = Depends(get_current_user),
 ) -> list[dict[str, Any]]:
     app_state = request.app.state.app_state
-    return await app_state.doc_repo.list_by_user(current_user["id"])
+    docs: list[dict[str, Any]] = await app_state.doc_repo.list_by_user(current_user["id"])
+    return docs
 
 
 @router.get("/{document_id}", response_model=dict[str, Any])
@@ -58,7 +62,9 @@ async def get_document(
     current_user: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, Any]:
     app_state = request.app.state.app_state
-    doc = await app_state.doc_repo.get_by_id(document_id, current_user["id"])
+    doc: dict[str, Any] | None = await app_state.doc_repo.get_by_id(
+        document_id, current_user["id"]
+    )
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
     return doc
@@ -91,6 +97,8 @@ async def update_document(
             doc_id=document_id,
         )
         return IngestDocumentResponse(document=doc, reindexed=reindexed, message=msg)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to update document: {exc}") from exc
 
@@ -117,4 +125,5 @@ async def get_document_versions(
     doc = await app_state.doc_repo.get_by_id(document_id, current_user["id"])
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
-    return await app_state.ver_repo.list_versions(document_id)
+    versions: list[dict[str, Any]] = await app_state.ver_repo.list_versions(document_id)
+    return versions

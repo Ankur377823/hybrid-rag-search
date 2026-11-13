@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
-import time
+
 import pytest
 from fastapi import HTTPException
 

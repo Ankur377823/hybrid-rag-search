@@ -13,6 +13,17 @@ from .reranker import Reranker
 log = get_logger(__name__)
 
 
+def _is_visible(chunk: Chunk, user_id: str | None, document_id: str | None) -> bool:
+    """A chunk is visible only to its owner, and only inside the chosen document.
+
+    Strict rule: when a `user_id` is given, a chunk with a different owner OR
+    with no owner at all is hidden.
+    """
+    if user_id and chunk.metadata.get("user_id") != user_id:
+        return False
+    return not (document_id and chunk.metadata.get("document_id") != document_id)
+
+
 class HybridRetriever:
     def __init__(
         self,
@@ -46,27 +57,44 @@ class HybridRetriever:
     ) -> list[RankedHit]:
         if not query.strip():
             return []
+
+        # Tenant isolation: work out which chunks this caller may see FIRST,
+        # then search only inside that set. (user_id=None is the local CLI,
+        # which may search everything.)
+        allowed_ids: set[str] | None = None
+        if user_id or document_id:
+            allowed_ids = {
+                c.chunk_id
+                for c in self._dense.all_chunks()
+                if _is_visible(c, user_id, document_id)
+            }
+            if not allowed_ids:
+                return []
+
         embedding = (await self._client.embed_batch(self._embedding_model, [query]))[0]
-        dense_hits = self._dense.search(embedding, top_k=self._dense_top_k)
-        sparse_hits = self._sparse.search(query, top_k=self._sparse_top_k)
+        dense_hits = self._dense.search(
+            embedding, top_k=self._dense_top_k, allowed_ids=allowed_ids
+        )
+        sparse_hits = self._sparse.search(
+            query, top_k=self._sparse_top_k, allowed_ids=allowed_ids
+        )
         fused = reciprocal_rank_fusion(dense_hits, sparse_hits, k=self._rrf_k)
 
-        # Resolve fused chunk_ids → Chunk objects, applying user_id / document_id isolation filters
+        # Best possible RRF score = rank 1 in BOTH lists. Dividing by it turns
+        # the tiny raw RRF score (about 0.03) into a 0-1 score, so the
+        # "I don't know" threshold also works when no reranker is used.
+        best_possible_rrf = 2.0 / (self._rrf_k + 1)
+
         candidates: list[RankedHit] = []
         target_count = max(self._final_top_k * 4, self._dense_top_k)
         for hit in fused:
             chunk = self._dense.get(hit.chunk_id) or self._sparse.get(hit.chunk_id)
-            if chunk is None:
-                continue
-            chunk_user = chunk.metadata.get("user_id")
-            if user_id and chunk_user and chunk_user != user_id:
-                continue
-            if document_id and chunk.metadata.get("document_id") != document_id:
+            if chunk is None or not _is_visible(chunk, user_id, document_id):
                 continue
             candidates.append(
                 RankedHit(
                     chunk=chunk,
-                    score=hit.rrf_score,
+                    score=min(1.0, hit.rrf_score / best_possible_rrf),
                     dense_rank=hit.dense_rank,
                     sparse_rank=hit.sparse_rank,
                     rrf_score=hit.rrf_score,

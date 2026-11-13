@@ -12,7 +12,7 @@ from rag.generation import GroundedAnswerer
 from rag.ingestion import IngestionPipeline, load_path
 from rag.llm_client import LLMClient
 from rag.models import ChunkingStrategy
-from rag.retrieval import HybridRetriever, NoOpReranker
+from rag.retrieval import HybridRetriever
 from rag.store import BM25Store, DenseVectorStore
 from tests.conftest import chat_json, chat_response, embed_response
 
@@ -23,7 +23,8 @@ async def test_attention_paper_full_pipeline(
     tmp_path: Path,
 ) -> None:
     pdf_path = Path("docs/attention-is-all-you-need-Paper.pdf")
-    assert pdf_path.exists(), "attention-is-all-you-need-Paper.pdf must exist in docs/"
+    # A one-off file check in a test; blocking here is fine.
+    assert pdf_path.exists(), "attention-is-all-you-need-Paper.pdf must exist in docs/"  # noqa: ASYNC240
 
     # Step 1: Ingestion & parsing of PDF
     docs = list(load_path(pdf_path))
@@ -45,24 +46,24 @@ async def test_attention_paper_full_pipeline(
         if url_path.endswith("/embeddings"):
             body = json.loads(request.content)
             return embed_response(body["input"])
-        
+
         # Chat responses for reranking / answering / verification
         body = json.loads(request.content)
         msgs = body.get("messages", [])
         last_msg = msgs[-1]["content"] if msgs else ""
-        
+
         # Reranker scoring request
         if "score the relevance" in (msgs[0]["content"] if msgs else "").lower():
             query_part = last_msg.split("QUERY:\n")[-1].split("\n\nPASSAGE:")[0].lower() if "QUERY:\n" in last_msg else ""
             passage_text = last_msg.split("PASSAGE:\n")[-1].lower() if "PASSAGE:\n" in last_msg else last_msg.lower()
-            if "author" in query_part:
-                if any(k in passage_text for k in ["vaswani", "shazeer", "parmar", "uszkoreit", "equal contribution"]):
-                    return chat_json({"score": 0.95})
-            elif "optimizer" in query_part:
-                if any(k in passage_text for k in ["adam", "warmup_steps", "beta1"]):
-                    return chat_json({"score": 0.95})
+            author_words = ["vaswani", "shazeer", "parmar", "uszkoreit", "equal contribution"]
+            optimizer_words = ["adam", "warmup_steps", "beta1"]
+            if "author" in query_part and any(k in passage_text for k in author_words):
+                return chat_json({"score": 0.95})
+            if "optimizer" in query_part and any(k in passage_text for k in optimizer_words):
+                return chat_json({"score": 0.95})
             return chat_json({"score": 0.05})
-        
+
         # Grounded answer request
         if "answer the user question" in (msgs[0]["content"] if msgs else "").lower():
             if "author" in last_msg.lower():

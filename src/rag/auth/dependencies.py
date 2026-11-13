@@ -55,14 +55,3 @@ async def get_current_user(
         )
 
     return user
-
-
-async def optional_current_user(
-    request: Request,
-    credentials: HTTPAuthorizationCredentials | None = Depends(security_scheme),
-) -> dict[str, Any] | None:
-    """Optionally extract authenticated user; returns None if anonymous."""
-    try:
-        return await get_current_user(request, credentials)
-    except HTTPException:
-        return None

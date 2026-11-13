@@ -135,17 +135,20 @@ class DocumentRepository:
         chunk_count: int,
         size_bytes: int,
         new_version: int,
+        filename: str,
     ) -> dict[str, Any] | None:
         now = datetime.now(UTC).isoformat()
         await self.db.execute(
             """UPDATE documents
-               SET version = $1, file_hash = $2, chunk_count = $3, size_bytes = $4, updated_at = $5, status = 'indexed'
-               WHERE id = $6 AND user_id = $7""",
+               SET version = $1, file_hash = $2, chunk_count = $3, size_bytes = $4,
+                   updated_at = $5, filename = $6, status = 'indexed'
+               WHERE id = $7 AND user_id = $8""",
             new_version,
             file_hash,
             chunk_count,
             size_bytes,
             now,
+            filename,
             document_id,
             user_id,
         )

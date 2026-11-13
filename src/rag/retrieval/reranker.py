@@ -14,6 +14,7 @@ All implementations honor the same `Reranker.rerank()` async interface.
 from __future__ import annotations
 
 import json
+import math
 import re
 from abc import ABC, abstractmethod
 from typing import Final
@@ -141,8 +142,10 @@ class CrossEncoderReranker(Reranker):  # pragma: no cover — optional dep
             return []
         pairs = [(query, c.chunk.text) for c in candidates]
         scores = self._model.predict(pairs)
+        # The model returns raw scores of any size; sigmoid maps them to 0-1 so
+        # the confidence threshold means the same thing for every reranker.
         rescored = [
-            c.model_copy(update={"score": float(s)})
+            c.model_copy(update={"score": 1.0 / (1.0 + math.exp(-float(s)))})
             for c, s in zip(candidates, scores, strict=True)
         ]
         rescored.sort(key=lambda h: h.score, reverse=True)

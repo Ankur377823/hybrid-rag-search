@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.1] — 2026-11-13
+
+### Security
+- `POST /v1/ask` now requires a valid login token. Before, anonymous callers (or callers with an invalid token) could query every user's documents.
+- Removed `POST /v1/ingest`. It needed no login and indexed any file path on the server. Bulk ingestion stays available through the `rag ingest` CLI.
+- Rate limiting is now counted per user id (valid token) or per IP address. Before, it was counted per raw `Authorization` header, so a different fake header on each request was never limited.
+- Chunks with no owner are hidden from logged-in users (strict tenant isolation).
+
+### Fixed
+- Tenant and document filters are applied before the top-K search, so other users' chunks can no longer push a user's own chunks out of the results.
+- `RAG_RERANK_KIND=none` no longer returns "I don't know" for every question: RRF scores are scaled to 0-1 before the confidence check. Cross-encoder scores are also mapped to 0-1.
+- Index files are saved atomically, and an unreadable index file is kept as `<name>.corrupt` instead of being silently replaced by an empty index.
+- A file with no readable text returns 400 instead of 500; a question of only spaces returns 422.
+- Updating a document with a new filename stores the new name; deleting a document removes its raw files from disk.
+- CLI ingestion removes near-duplicates inside one run, not only against earlier runs.
+- "I don't know" written with a curly apostrophe is recognised as a refusal.
+- `RAG_JWT_EXPIRE_MINUTES` is now used for the login token.
+- The UI signs the user out when the token expires; the usage card label says "Queries (30 days)".
+- CI: fixed all `ruff` and `mypy` errors; added 13 regression tests (84 tests, 84% coverage).
+
+---
+
 ## [0.2.0] — 2026-10-09
 
 ### Added

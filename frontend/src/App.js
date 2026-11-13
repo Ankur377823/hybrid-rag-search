@@ -26,6 +26,12 @@ class App {
 
     // Subscribe to state updates
     store.subscribe((state) => this.handleStateChange(state));
+
+    // api.js fires this when the server answers 401 (token expired or invalid):
+    // sign the user out so the login screen is shown again.
+    window.addEventListener('auth:expired', () => {
+      if (store.token) store.setAuth('', null);
+    });
   }
 
   async init() {

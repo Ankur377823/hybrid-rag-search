@@ -196,6 +196,7 @@ class DocumentManager:
                 chunk_count=len(tagged_chunks),
                 size_bytes=size_bytes,
                 new_version=target_version,
+                filename=filename,
             )
             doc_record = updated_doc or existing
         else:
@@ -240,6 +241,10 @@ class DocumentManager:
         self.sparse.delete(chunk_ids_to_remove)
         self.dense.save()
         self.sparse.save()
+
+        # Remove the raw uploaded files of every version from disk
+        for version in await self.ver_repo.list_versions(document_id):
+            self.storage.delete_file(version["storage_path"])
 
         # Delete database record (cascades versions)
         await self.doc_repo.delete(document_id, user_id)

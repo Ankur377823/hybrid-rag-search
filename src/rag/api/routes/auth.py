@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -41,6 +42,7 @@ async def login(req: LoginRequest, request: Request) -> AuthResponse:
         data={"sub": user["id"], "email": user["email"]},
         secret_key=app_state.settings.jwt_secret,
         algorithm=app_state.settings.jwt_algorithm,
+        expires_delta=timedelta(minutes=app_state.settings.jwt_expire_minutes),
     )
     return AuthResponse(
         access_token=token,

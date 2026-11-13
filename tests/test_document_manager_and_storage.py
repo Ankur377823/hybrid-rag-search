@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+
 import pytest
 
 from rag.db.database import Database
@@ -26,7 +27,7 @@ def test_file_storage_save_read_delete(file_storage: FileStorage) -> None:
     filename = "document.txt"
     content = b"Hello world storage testing!"
 
-    path, f_hash, size = file_storage.save_file(
+    path, _f_hash, size = file_storage.save_file(
         user_id=user_id,
         filename=filename,
         content=content,
@@ -107,7 +108,7 @@ async def test_document_manager_ingest_dedup_and_reindex(
         doc_content = b"# Document Content\nThis is a sample document for RAG indexing."
 
         # 1. First Ingestion: creates v1
-        doc_rec, reindexed, msg = await manager.ingest_or_update(
+        doc_rec, reindexed, _msg = await manager.ingest_or_update(
             user_id=uid,
             filename="sample.md",
             content=doc_content,

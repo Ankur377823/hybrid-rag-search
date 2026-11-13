@@ -1,6 +1,6 @@
 /**
  * UsageCard Component
- * Displays tenant usage and quota metrics (queries today, tokens processed).
+ * Displays tenant usage and quota metrics (queries and tokens in the last 30 days).
  */
 
 export class UsageCard {
@@ -21,7 +21,7 @@ export class UsageCard {
         </div>
         <div class="telemetry-grid">
           <div class="telemetry-cell">
-            <div class="telemetry-label">Queries Today</div>
+            <div class="telemetry-label">Queries (30 days)</div>
             <div class="telemetry-number">${queries}</div>
           </div>
           <div class="telemetry-cell">

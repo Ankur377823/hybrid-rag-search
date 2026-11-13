@@ -27,6 +27,16 @@ _GROUNDED_SYSTEM = (
 )
 
 
+def is_idk_text(text: str) -> bool:
+    """True when the answer is a refusal ("I don't know").
+
+    Models sometimes write a curly apostrophe or leave it out, so the text is
+    normalised before comparing.
+    """
+    normalized = text.strip().lower().replace("\u2019", "'")
+    return normalized.startswith(("i don't know", "i dont know"))
+
+
 class GroundedAnswerer:
     """Render passages → grounded prompt → LLM → `Answer` (without citation verify)."""
 
@@ -89,7 +99,7 @@ class GroundedAnswerer:
             max_tokens=self._max_tokens,
         )
         text = resp.content.strip()
-        is_idk = text.lower().startswith("i don't know") or text.lower() == "i dont know."
+        is_idk = is_idk_text(text)
         return Answer(
             request_id=request_id,
             question=question,
