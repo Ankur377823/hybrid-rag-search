@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Literal
 
@@ -39,6 +42,36 @@ class ChatResponse:
     prompt_tokens: int
     completion_tokens: int
     latency_ms: int
+
+
+@dataclass
+class TokenUsage:
+    """Running total of tokens that OpenAI reported for one request."""
+
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    embedding_tokens: int = 0
+
+    @property
+    def total(self) -> int:
+        return self.prompt_tokens + self.completion_tokens + self.embedding_tokens
+
+
+# The counter of the request that is currently running (None = nobody counts).
+# A ContextVar keeps one value per request, so two users asking at the same
+# time never add to each other's counter.
+_current_usage: ContextVar[TokenUsage | None] = ContextVar("current_usage", default=None)
+
+
+@contextmanager
+def track_token_usage() -> Iterator[TokenUsage]:
+    """Count the tokens of every LLM call made inside the `with` block."""
+    usage = TokenUsage()
+    marker = _current_usage.set(usage)
+    try:
+        yield usage
+    finally:
+        _current_usage.reset(marker)
 
 
 class LLMClient:
@@ -133,11 +166,17 @@ class LLMClient:
             )
         data = resp.json()
         usage = data.get("usage", {})
+        prompt_tokens = int(usage.get("prompt_tokens", 0))
+        completion_tokens = int(usage.get("completion_tokens", 0))
+        counter = _current_usage.get()
+        if counter is not None:
+            counter.prompt_tokens += prompt_tokens
+            counter.completion_tokens += completion_tokens
         return ChatResponse(
             content=data["choices"][0]["message"]["content"],
             model=model,
-            prompt_tokens=int(usage.get("prompt_tokens", 0)),
-            completion_tokens=int(usage.get("completion_tokens", 0)),
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
             latency_ms=int((time.perf_counter() - start) * 1000),
         )
 
@@ -167,4 +206,7 @@ class LLMClient:
                 status=resp.status_code,
             )
         data = resp.json()
+        counter = _current_usage.get()
+        if counter is not None:
+            counter.embedding_tokens += int(data.get("usage", {}).get("total_tokens", 0))
         return [list(item["embedding"]) for item in data.get("data", [])]

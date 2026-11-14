@@ -8,7 +8,7 @@ from .generation import (
     parse_citations,
     verify_citations_async,
 )
-from .llm_client import LLMClient
+from .llm_client import LLMClient, track_token_usage
 from .logging import get_logger
 from .models import Answer
 from .retrieval import HybridRetriever
@@ -35,6 +35,20 @@ class RagEngine:
         self._judge_weight = judge_weight
 
     async def answer(
+        self,
+        question: str,
+        *,
+        user_id: str | None = None,
+        document_id: str | None = None,
+    ) -> Answer:
+        """Answer one question and report the tokens every step used."""
+        with track_token_usage() as usage:
+            result = await self._run_pipeline(
+                question, user_id=user_id, document_id=document_id
+            )
+        return result.model_copy(update={"tokens_used": usage.total})
+
+    async def _run_pipeline(
         self,
         question: str,
         *,

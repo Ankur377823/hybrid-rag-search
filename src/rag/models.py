@@ -133,6 +133,8 @@ class Answer(BaseModel):
     is_idk: bool = False
     model: str = ""
     latency_ms: int = Field(ge=0, default=0)
+    # Real token count reported by OpenAI for this question (all LLM calls).
+    tokens_used: int = Field(ge=0, default=0)
 
 
 class EvalCase(BaseModel):

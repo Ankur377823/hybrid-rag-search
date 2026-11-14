@@ -112,6 +112,8 @@ def _build_state(settings: Settings | None = None) -> AppState:
         strategy=settings.chunking_strategy,
         chunk_size_tokens=settings.chunk_size_tokens,
         overlap_tokens=settings.chunk_overlap_tokens,
+        semantic_min_tokens=settings.semantic_chunk_min_tokens,
+        semantic_max_tokens=settings.semantic_chunk_max_tokens,
     )
 
     return AppState(

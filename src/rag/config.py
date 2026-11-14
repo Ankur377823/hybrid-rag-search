@@ -12,6 +12,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .models import ChunkingStrategy
 
+# Placeholder only. It is public (it is in the source code), so anyone could
+# sign their own login tokens with it. Production must set RAG_JWT_SECRET.
+DEFAULT_JWT_SECRET = "rag-production-jwt-secret-key-replace-in-env"
+PRODUCTION_ENVIRONMENTS = ("production", "deployment", "prod")
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -65,7 +70,7 @@ class Settings(BaseSettings):
     environment: str = "development"  # "development" (local SQLite) | "production" (deployment PostgreSQL)
     database_url: str = ""
     sqlite_path: Path = Path("./data/rag.db")
-    jwt_secret: str = "rag-production-jwt-secret-key-replace-in-env"
+    jwt_secret: str = DEFAULT_JWT_SECRET
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440
     admin_email: str = Field(default="admin@hybridrag.io", description="Configured system admin email")
@@ -75,6 +80,10 @@ class Settings(BaseSettings):
     qdrant_url: str = ""
     qdrant_api_key: str = ""
     rate_limit_per_minute: int = 60
+    # Other websites allowed to call this API from a browser, comma-separated
+    # (e.g. "https://app.example.com,https://admin.example.com"). Empty = none.
+    # The bundled UI is served from the same address, so it needs no entry.
+    cors_allowed_origins: str = ""
 
     api_host: str = "0.0.0.0"
     api_port: int = Field(default=8100, ge=1, le=65535)
@@ -92,6 +101,21 @@ class Settings(BaseSettings):
                 "semantic_chunk_min_tokens must be <= semantic_chunk_max_tokens"
             )
         return self
+
+    @model_validator(mode="after")
+    def _check_production_secret(self) -> Settings:
+        """Refuse to start in production with the public placeholder secret."""
+        in_production = self.environment.lower().strip() in PRODUCTION_ENVIRONMENTS
+        if in_production and self.jwt_secret == DEFAULT_JWT_SECRET:
+            raise ValueError(
+                "RAG_JWT_SECRET must be set to a private random value in production."
+            )
+        return self
+
+    @property
+    def cors_origins(self) -> list[str]:
+        """`cors_allowed_origins` as a clean list."""
+        return [o.strip() for o in self.cors_allowed_origins.split(",") if o.strip()]
 
 
 def load_settings(**overrides: Any) -> Settings:

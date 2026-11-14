@@ -1,15 +1,20 @@
-"""Authentication utilities: secure password hashing and JWT token processing."""
+"""Authentication utilities: password hashing and JWT tokens.
+
+Passwords: PBKDF2-HMAC-SHA256 from the Python standard library.
+Tokens:    the PyJWT library (signing, signature check and expiry check).
+"""
 
 from __future__ import annotations
 
-import base64
 import hashlib
-import hmac
-import json
 import secrets
 import time
 from datetime import timedelta
 from typing import Any
+
+import jwt
+
+DEFAULT_TOKEN_LIFETIME_SECONDS = 24 * 3600
 
 
 def hash_password(password: str) -> str:
@@ -44,42 +49,19 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-def _b64encode_url(data: bytes) -> str:
-    return base64.urlsafe_b64encode(data).decode("utf-8").rstrip("=")
-
-
-def _b64decode_url(text: str) -> bytes:
-    padding = 4 - (len(text) % 4)
-    if padding < 4:
-        text += "=" * padding
-    return base64.urlsafe_b64decode(text.encode("utf-8"))
-
-
 def create_access_token(
     data: dict[str, Any],
     secret_key: str,
     algorithm: str = "HS256",
     expires_delta: timedelta | None = None,
 ) -> str:
-    """Create a signed JWT token."""
-    to_encode = data.copy()
+    """Create a signed JWT. Adds `iat` (issued at) and `exp` (expires at)."""
     now = int(time.time())
-    expire = now + int(expires_delta.total_seconds()) if expires_delta else now + (24 * 3600)
-    to_encode.update({"iat": now, "exp": expire})
-
-    # Standard JWT creation (robust, works without C-extensions)
-    header = {"typ": "JWT", "alg": algorithm}
-    h_bytes = json.dumps(header, separators=(",", ":")).encode("utf-8")
-    p_bytes = json.dumps(to_encode, separators=(",", ":")).encode("utf-8")
-
-    segment1 = _b64encode_url(h_bytes)
-    segment2 = _b64encode_url(p_bytes)
-    signing_input = f"{segment1}.{segment2}".encode()
-
-    signature = hmac.new(secret_key.encode("utf-8"), signing_input, hashlib.sha256).digest()
-    segment3 = _b64encode_url(signature)
-
-    return f"{segment1}.{segment2}.{segment3}"
+    lifetime = (
+        int(expires_delta.total_seconds()) if expires_delta else DEFAULT_TOKEN_LIFETIME_SECONDS
+    )
+    payload = {**data, "iat": now, "exp": now + lifetime}
+    return jwt.encode(payload, secret_key, algorithm=algorithm)
 
 
 def decode_access_token(
@@ -87,27 +69,13 @@ def decode_access_token(
     secret_key: str,
     algorithm: str = "HS256",
 ) -> dict[str, Any] | None:
-    """Decode and verify a signed JWT token."""
+    """Return the token's payload, or None if it is invalid or expired.
+
+    `algorithms=[algorithm]` is important: only the algorithm we signed with is
+    accepted, so a token cannot choose a weaker one for itself.
+    """
     try:
-        parts = token.split(".")
-        if len(parts) != 3:
-            return None
-        segment1, segment2, segment3 = parts
-        signing_input = f"{segment1}.{segment2}".encode()
-
-        expected_sig = hmac.new(secret_key.encode("utf-8"), signing_input, hashlib.sha256).digest()
-        actual_sig = _b64decode_url(segment3)
-        if not secrets.compare_digest(expected_sig, actual_sig):
-            return None
-
-        payload_bytes = _b64decode_url(segment2)
-        payload: dict[str, Any] = json.loads(payload_bytes.decode("utf-8"))
-
-        # Verify expiration
-        exp = payload.get("exp")
-        if exp is not None and int(exp) < int(time.time()):
-            return None
-
-        return payload
-    except Exception:
+        payload: dict[str, Any] = jwt.decode(token, secret_key, algorithms=[algorithm])
+    except jwt.PyJWTError:
         return None
+    return payload

@@ -143,7 +143,7 @@ def full_app_client(
     settings = Settings(
         admin_email=ADMIN_EMAIL,
         admin_password=ADMIN_PASSWORD,
-        jwt_secret="testing-jwt-secret-key-12345",
+        jwt_secret="testing-jwt-secret-key-0123456789-abcdef",
     )
     db = Database(url="", environment="development", default_sqlite_path=tmp_path / "test.db")
     doc_repo = DocumentRepository(db)

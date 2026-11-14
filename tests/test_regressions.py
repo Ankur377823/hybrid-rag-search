@@ -22,6 +22,7 @@ from rag.store import BM25Store, DenseVectorStore
 
 from .conftest import ADMIN_EMAIL, ADMIN_PASSWORD, login_headers
 
+TEST_SECRET = "regression-test-secret-0123456789-abcdef"
 SECRET_FACT = b"# Private notes\nThe launch code for project Heron is 7421.\n"
 
 
@@ -91,7 +92,7 @@ def test_server_path_ingest_endpoint_is_gone(full_app_client: TestClient, tmp_pa
 
 def test_rate_limit_key_ignores_fake_authorization_headers() -> None:
     """Old bug: the raw header was the key, so a new fake header each time was never limited."""
-    settings = SimpleNamespace(jwt_secret="s3cret", jwt_algorithm="HS256")
+    settings = SimpleNamespace(jwt_secret=TEST_SECRET, jwt_algorithm="HS256")
     app = SimpleNamespace(state=SimpleNamespace(app_state=SimpleNamespace(settings=settings)))
 
     def request_with(header: str) -> Any:
@@ -103,7 +104,7 @@ def test_rate_limit_key_ignores_fake_authorization_headers() -> None:
     assert client_key(request_with("Bearer fake-2")) == "ip:9.9.9.9"
     assert client_key(request_with("")) == "ip:9.9.9.9"
 
-    real = create_access_token({"sub": "usr_1"}, secret_key="s3cret")
+    real = create_access_token({"sub": "usr_1"}, secret_key=TEST_SECRET)
     assert client_key(request_with(f"Bearer {real}")) == "user:usr_1"
 
 

@@ -26,7 +26,7 @@ def test_password_hashing_and_verification() -> None:
 
 
 def test_jwt_create_and_decode_valid() -> None:
-    secret = "test-secret-key"
+    secret = "test-secret-key-0123456789-abcdefghij"
     payload = {"sub": "user_123", "email": "test@example.com", "role": "admin"}
     token = create_access_token(payload, secret_key=secret, expires_delta=timedelta(minutes=30))
 
@@ -40,8 +40,8 @@ def test_jwt_create_and_decode_valid() -> None:
 
 
 def test_jwt_invalid_secret_or_tampered() -> None:
-    secret = "correct-secret"
-    wrong_secret = "wrong-secret"
+    secret = "correct-secret-0123456789-abcdefghijk"
+    wrong_secret = "wrong-secret-0123456789-abcdefghijklm"
     payload = {"sub": "user_456"}
     token = create_access_token(payload, secret_key=secret)
 
@@ -57,7 +57,7 @@ def test_jwt_invalid_secret_or_tampered() -> None:
 
 
 def test_jwt_expired_token() -> None:
-    secret = "test-secret"
+    secret = "test-secret-0123456789-abcdefghijklmn"
     payload = {"sub": "user_expired"}
     # Token that expired 10 seconds ago
     token = create_access_token(payload, secret_key=secret, expires_delta=timedelta(seconds=-10))

@@ -41,8 +41,7 @@ async def ask_question(
 
     # Save usage and history. A failure here must not hide the answer.
     try:
-        tokens_estimate = len(req.question.split()) + len(answer.text.split())
-        await app_state.usage_repo.record_usage(user_id, tokens=tokens_estimate)
+        await app_state.usage_repo.record_usage(user_id, tokens=answer.tokens_used)
         await app_state.history_repo.add(
             user_id=user_id,
             question=req.question,

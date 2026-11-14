@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.2] — 2026-11-14
+
+### Changed
+- JWT tokens are created and checked with the PyJWT library instead of hand-written code. Only the configured algorithm is accepted.
+- The app refuses to start in production while `RAG_JWT_SECRET` is still the public placeholder value.
+- CORS is closed by default. Other websites must be listed in `RAG_CORS_ALLOWED_ORIGINS`.
+- Semantic chunking now works for documents uploaded through the API (it used to fall back to recursive splitting). Upload embeddings are sent in batches.
+- Token usage is the real count reported by the LLM provider (embedding, reranking, answer and citation-check calls), returned as `tokens_used` on each answer.
+- ADR-003 now describes the confidence formula that the code actually uses.
+
+---
+
 ## [0.2.1] — 2026-11-13
 
 ### Security

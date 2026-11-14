@@ -11,9 +11,9 @@ A RAG system that always answers is more dangerous than one that occasionally re
 
 ## Decision
 
-- **Hard gate on retrieval confidence.** When `mean(post_rerank_score) < RAG_IDK_RETRIEVAL_THRESHOLD` (default 0.35), or no chunks are retrieved, the answerer short-circuits to the literal `"I don't know."` string and does not call the generation model. This is the spec's "low retrieval confidence → IDK" surface.
+- **Hard gate on retrieval confidence.** When `retrieval_confidence < RAG_IDK_RETRIEVAL_THRESHOLD` (default 0.35), or no chunks are retrieved, the answerer short-circuits to the literal `"I don't know."` string and does not call the generation model. This is the spec's "low retrieval confidence → IDK" surface.
 - **Composite confidence.** Every non-IDK answer gets a single `composite_confidence` field, the weighted blend of:
-  - `retrieval_confidence` — mean post-rerank score, in `[0, 1]`.
+  - `retrieval_confidence` — a blend of the post-rerank scores, in `[0, 1]`: `max(0.75 × top, 0.7 × top + 0.3 × mean)`. A plain mean was used first and replaced: when exactly one chunk holds the answer (scores like `[1.0, 0, 0, 0, 0]`) the mean is 0.20 and wrongly triggered the IDK gate.
   - `citation_accuracy` — fraction of bracketed citations the LLM-as-judge marks supported.
   - The blend weight `judge_weight` defaults to 0.5 and is configurable.
 
@@ -24,14 +24,14 @@ Callers who want a stricter contract threshold against `composite_confidence`; c
 **Why this works:**
 
 - **The two confidence sources catch different failures.** Low retrieval = "we couldn't find anything to ground against" (early signal). Low citation accuracy = "we found something but the LLM cited it wrong" (late signal). A user threshold of 0.4 on the composite catches both with one number.
-- **Hard IDK gate saves an LLM call.** When retrieval is clearly bad, we don't pay the generation roundtrip. Latency budget stays under the spec's 3 s P95.
+- **Hard IDK gate saves an LLM call.** When retrieval is clearly bad, we don't pay the generation roundtrip or the citation-judge calls.
 - **Citation verification is mandatory, not optional.** Every non-IDK answer is checked. We treat the verifier as part of the response path because "the answer is grounded" is the project's core value prop.
 
 **Trade-offs:**
 
 - The hard IDK gate can mask cases where retrieval is borderline but the LLM could have stitched an acceptable answer. We accept this — the project explicitly prefers `"I don't know"` to a hallucination. Teams that want a softer gate can lower `RAG_IDK_RETRIEVAL_THRESHOLD`; we don't recommend it.
-- The verifier is itself an LLM, so an unreliable verifier propagates noise. We mitigate by running it on a smaller, cheaper model (`gpt-4o-mini`) with a strict JSON-only schema; the audit log keeps the verifier's per-citation verdict so later analysis can detect verifier drift.
-- Composite blending is a heuristic, not a calibrated probability. We document this and treat the threshold as a knob.
+- The verifier is itself an LLM, so an unreliable verifier propagates noise. We mitigate by running it on a smaller, cheaper model (`gpt-4o-mini`) with a strict JSON-only schema, and by counting any failed or unreadable verdict as "not supported". Per-citation verdicts are not stored yet; storing them would allow later analysis of verifier drift.
+- Both the retrieval blend (0.7 / 0.3) and the composite blend are heuristics, not calibrated probabilities. The weights and the 0.35 threshold were chosen by judgment and should be tuned on a labelled set of answerable and unanswerable questions.
 
 ## Alternatives considered
 

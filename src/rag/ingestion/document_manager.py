@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from ..db.repository import DocumentRepository, VersionRepository
-from ..ingestion.chunkers import chunker_for
+from ..ingestion.chunkers import SemanticChunker, chunker_for
 from ..llm_client import LLMClient
 from ..logging import get_logger
 from ..models import ChunkingStrategy, Document, DocumentFormat
@@ -76,6 +76,9 @@ class DocumentManager:
         strategy: ChunkingStrategy = ChunkingStrategy.RECURSIVE,
         chunk_size_tokens: int = 512,
         overlap_tokens: int = 64,
+        semantic_min_tokens: int = 200,
+        semantic_max_tokens: int = 900,
+        embedding_batch_size: int = 256,
     ):
         self.client = client
         self.embedding_model = embedding_model
@@ -87,6 +90,18 @@ class DocumentManager:
         self.strategy = strategy
         self.chunk_size_tokens = chunk_size_tokens
         self.overlap_tokens = overlap_tokens
+        self.semantic_min_tokens = semantic_min_tokens
+        self.semantic_max_tokens = semantic_max_tokens
+        self.embedding_batch_size = embedding_batch_size
+
+    async def _embed(self, texts: list[str]) -> list[list[float]]:
+        """Embed texts in batches, so a large document never exceeds the API's
+        per-request limit."""
+        vectors: list[list[float]] = []
+        for start in range(0, len(texts), self.embedding_batch_size):
+            batch = texts[start : start + self.embedding_batch_size]
+            vectors.extend(await self.client.embed_batch(self.embedding_model, batch))
+        return vectors
 
     async def ingest_or_update(
         self,
@@ -141,8 +156,15 @@ class DocumentManager:
             self.strategy,
             chunk_size_tokens=self.chunk_size_tokens,
             overlap_tokens=self.overlap_tokens,
+            embed_fn=self._embed,
+            semantic_min=self.semantic_min_tokens,
+            semantic_max=self.semantic_max_tokens,
         )
-        new_chunks = chunker.chunk(doc_model)
+        # The semantic chunker needs embeddings of every sentence, so it is async.
+        if isinstance(chunker, SemanticChunker):
+            new_chunks = await chunker.chunk_async(doc_model)
+        else:
+            new_chunks = chunker.chunk(doc_model)
         if not new_chunks:
             raise ValueError(f"Failed to generate chunks for '{filename}'.")
 
@@ -163,7 +185,7 @@ class DocumentManager:
 
         # 4. Generate Embeddings (Staging phase)
         texts = [c.text for c in tagged_chunks]
-        new_embeddings = await self.client.embed_batch(self.embedding_model, texts)
+        new_embeddings = await self._embed(texts)
         if len(new_embeddings) != len(tagged_chunks):
             raise RuntimeError("Embedding count mismatch from API.")
 

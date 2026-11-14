@@ -1,8 +1,8 @@
 """Dense (embedding) vector store.
 
 JSON-backed flat-file index. Cosine top-K with NumPy is sub-millisecond up to
-~50K rows; the spec calls for 10K-100K chunks which fits comfortably. ChromaDB /
-Qdrant migration path is documented in ADR-002.
+~50K rows. It runs in one process and keeps everything in memory; a vector
+database (pgvector, Qdrant) would replace this class behind the same methods.
 
 Public surface:
 

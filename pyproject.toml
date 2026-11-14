@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "rag-hybrid-search"
 version = "0.1.0"
-description = "Production-grade RAG with multi-format ingestion, three swappable chunking strategies, hybrid (dense + BM25) retrieval with RRF fusion, cross-encoder reranking, grounded generation with bracketed citations, and LLM-as-judge citation verification."
+description = "RAG system with multi-format ingestion, three swappable chunking strategies, hybrid (dense + BM25) retrieval with RRF fusion, LLM or cross-encoder reranking, grounded generation with bracketed citations, and LLM-as-judge citation verification."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Ankur Rajput", email = "ankurrajput7050@gmail.com" }]

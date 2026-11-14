@@ -85,19 +85,23 @@ def create_app(state: AppState) -> FastAPI:
         title="rag-hybrid-search",
         version="0.2.0",
         description=(
-            "Production-grade hybrid-search RAG with multi-user isolation, document "
+            "Hybrid-search RAG with multi-user isolation, document "
             "versioning & atomic re-indexing, JWT authentication, and PostgreSQL support."
         ),
         lifespan=lifespan,
     )
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    # Cross-origin access is off unless RAG_CORS_ALLOWED_ORIGINS lists a site.
+    # Login uses an Authorization header (not cookies), so credentials stay off.
+    cors_origins = state.settings.cors_origins if state.settings else []
+    if cors_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=cors_origins,
+            allow_credentials=False,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     app.state.app_state = state
 
